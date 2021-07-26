@@ -1,0 +1,24 @@
+{
+  "name": "@bucky24/react-animate",
+  "version": "0.1.0",
+  "description": "Animation library for React apps",
+  "main": "index.js",
+  "scripts": {
+	"build": "babel src --out-dir build",
+	"publish": "npm run build && npm publish --access=public"
+  },
+  "files": [
+      "/build"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Bucky24/react-animate.git"
+  },
+  "author": "",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Bucky24/react-animate/issues"
+  },
+  "homepage": "https://github.com/Bucky24/react-animate#readme",
+  "devDependencies": {}
+}
