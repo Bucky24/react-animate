@@ -4,8 +4,7 @@
   "description": "Animation library for React apps",
   "main": "index.js",
   "scripts": {
-	"build": "babel src --out-dir build",
-	"publish": "npm run build && npm publish --access=public"
+	"publish": "npm publish --access=public"
   },
   "files": [
       "/index.js",
