@@ -28,10 +28,21 @@ The hook takes three parameters:
 | autoPlay | Bool | Indicates if the animation should start playing immediately or not |
 | frameDelay | Number | The number of MS in between each tick |
 
-In order to actually consume the animator, spread the result of `animator.animate('id')` over the element. The id should match the ID in the config, and does not need to match the `id` property set on the element.
+
 
 It is recommended that you avoid setting the style property directly of any element you're animating over, though adding classes should work fine.
 
+## Animator
+
+The Animator from `useAnimator` exposes the following methods:
+
+### animate
+
+In order to actually consume the animator, spread the result of `animator.animate('id')` over the element. The id should match the ID in the config, and does not need to match the `id` property set on the element.
+
+### moveTo
+
+The moveTo method takes in a frame, and will immediately jump in time to that frame, setting all applicable properties.
 ## Config
 
 The config is the main body of data for the animation system. Note that changing the configuration mid-animation will cause the entire system to reset.

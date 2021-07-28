@@ -3,15 +3,32 @@ import { useState, useEffect, useRef } from 'react';
 
 export const Animator = animator;
 
-const getAnimator = (animatorObj) => {
+const useForceRender = () => {
+    const [renderTick, setRenderTick] = useState(0);
+
+    return () => {
+        setRenderTick((tick) => {
+            return tick + 1;
+        });
+    }
+}
+
+const getAnimator = (animatorObj, forceRender) => {
     return {
         animate: animatorObj ? animatorObj.animate.bind(animatorObj) : () => { return {}; },
+        moveTo: (frame) => {
+            if (animatorObj) {
+                animatorObj.moveTo(frame);
+                forceRender();
+            }
+        },
     };
 }
 
 export const useAnimator = function({ config, autoPlay, frameDelay }) {
+    const forceRender = useForceRender();
     const animatorRef = useRef(null);
-    const [animatorObj, setAnimatorObj] = useState(getAnimator(null));
+    const [animatorObj, setAnimatorObj] = useState(getAnimator(null, forceRender));
     const [tick, setTick] = useState(0);
     
     useEffect(() => {
@@ -26,7 +43,7 @@ export const useAnimator = function({ config, autoPlay, frameDelay }) {
         animatorRef.current.setAutoPlay(autoPlay);
         animatorRef.current.setFrameDelay(frameDelay);
         
-        setAnimatorObj(getAnimator(animatorRef.current));
+        setAnimatorObj(getAnimator(animatorRef.current, forceRender));
     }, [config, autoPlay, frameDelay]);
     
     useEffect(() => {

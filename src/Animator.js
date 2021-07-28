@@ -37,7 +37,8 @@ class Animator {
         // initial state set at that point or the transition doesn't actually animate
         this.currentFrame = -1;
         this.highestFrame = highestFrame;
-        this.interval = this.doTick();
+        clearInterval(this.interval);
+        this.doTick();
         //console.log(this.config);
     }
     
@@ -48,8 +49,9 @@ class Animator {
     setAutoPlay(newAutoPlay) {
         this.autoPlay = newAutoPlay;
         clearInterval(this.interval);
+        this.interval = null;
         if (this.autoPlay) {
-            this.interval = this.doTick();
+            this.doTick();
         }
     }
     
@@ -57,14 +59,14 @@ class Animator {
         this.frameDelay = newFrameDelay;
         if (this.autoPlay) {
             clearInterval(this.interval);
-            this.interval = this.doTick();
+            this.doTick();
         }
         
     }
     
     doTick() {
         this.onTick(this.currentFrame);
-        return setInterval(() => {
+        this.interval = setInterval(() => {
             const newFrame = Math.min(this.currentFrame + 1, this.highestFrame);
             //console.log(this.highestFrame);
             if (newFrame !== this.currentFrame) {
@@ -72,9 +74,48 @@ class Animator {
                 this.onTick(this.currentFrame);
             }
         }, this.frameDelay);
+        return this.interval;
+    }
+
+    moveTo(moveToFrame) {
+        // basically find the closest keyframe to this frame that defines all our properites for all ids
+        Object.keys(this.config).forEach((id) => {
+            const config = this.config[id];
+            const properties = {
+                style: {},
+                animateStyles: [],
+            };
+            Object.keys(config).forEach((property) => {
+                const data = config[property];
+                let currentValue = null;
+                // find the frame closest to the one given
+                const frames = Object.keys(data);
+                for (const frame of frames) {
+                    if (frame > moveToFrame) {
+                        break;
+                    }
+                    //console.log('for',property,frame, data[frame]);
+                    currentValue = data[frame];
+                }
+                //console.log(property, currentValue);
+                if (currentValue !== undefined) {
+                    if (property.startsWith('style.')) {
+                        const styleProp = property.replace('style.', '');
+                        properties.style = {
+                            ...properties.style,
+                            [styleProp]: currentValue,
+                        };
+                    }
+                }
+            });
+
+            //console.log(id, properties);
+            this.currentProperties[id] = properties;
+        });
+        this.currentFrame = moveToFrame;
     }
     
-    animate(id) {
+    getForId(id, frame) {
         const config = this.config[id];
         
         if (!config) {
@@ -86,8 +127,8 @@ class Animator {
             animateStyles: [],
         };
         
-        const currentFrame = this.currentFrame < 0 ? 0 : this.currentFrame;
-        const initialFrame = this.currentFrame < 0;
+        const currentFrame = frame < 0 ? 0 : frame;
+        const initialFrame = frame < 0;
         
         Object.keys(config).forEach((property) => {
             const data = config[property];
@@ -97,7 +138,7 @@ class Animator {
                     const styleProp = property.replace('style.', '');
                     
                     // see if we need to animate to another value
-                    if (!initialFrame) {
+                    if (!initialFrame && this.autoPlay) {
                         const frames = Object.keys(data);
                         const frameIndex = frames.indexOf(`${currentFrame}`);
                         //console.log(frameIndex + 1, frames.length);
@@ -107,12 +148,17 @@ class Animator {
                             // ignore and don't animate if the next value is null (meaning it's being unset)
                             if (nextValue !== null) {
                                 currentValue = nextValue;
-                                properties.animateStyles[styleProp] = (nextFrame - this.currentFrame) * this.frameDelay;
+                                properties.animateStyles[styleProp] = (nextFrame - frame) * this.frameDelay;
                                 //console.log('got here', currentValue, styleProp);
                             }
                         } else {
                             delete properties.animateStyles[styleProp];
                         }
+                    }
+
+                    if (!this.autoPlay) {
+                        // reset all animations so that we don't accidentlly animate without meaning to
+                        properties.animateStyles = [];
                     }
                     
                     properties.style = {
@@ -124,7 +170,11 @@ class Animator {
         });
         
         this.currentProperties[id] = properties;
-        
+        return properties;
+    }
+
+    animate(id) {
+        const properties = this.getForId(id, this.currentFrame);
         // process properties
         const newProperties = {
             ...properties,
