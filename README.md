@@ -48,6 +48,11 @@ In order to actually consume the animator, spread the result of `animator.animat
 ### moveTo
 
 The moveTo method takes in a frame, and will immediately jump in time to that frame, setting all applicable properties.
+
+### playTo
+
+The playTo method takes in a frame, and will play until that frame, then stop playback (unless autoPlay is enabled). If the current frame is already past the frame given, nothing will happen.
+
 ## Config
 
 The config is the main body of data for the animation system. Note that changing the configuration mid-animation will cause the entire system to reset.

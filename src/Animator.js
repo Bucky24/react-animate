@@ -7,6 +7,7 @@ class Animator {
         this.currentProperties = {};
         this.frameDelay = 1000;
         this.highestFrame = 0;
+        this.playUntil = 0;
     }
     
     setConfig(newConfig) {
@@ -48,10 +49,12 @@ class Animator {
     
     setAutoPlay(newAutoPlay) {
         this.autoPlay = newAutoPlay;
-        clearInterval(this.interval);
-        this.interval = null;
-        if (this.autoPlay) {
-            this.doTick();
+        if (this.currentFrame >= this.playUntil) {
+            clearInterval(this.interval);
+            this.interval = null;
+            if (this.autoPlay) {
+                this.doTick();
+            }
         }
     }
     
@@ -72,6 +75,10 @@ class Animator {
             if (newFrame !== this.currentFrame) {
                 this.currentFrame = newFrame;
                 this.onTick(this.currentFrame);
+            }
+            if (this.currentFrame >= this.playUntil && !this.autoPlay) {
+                clearInterval(this.interval);
+                this.interval = null;
             }
         }, this.frameDelay);
         return this.interval;
@@ -112,7 +119,22 @@ class Animator {
             //console.log(id, properties);
             this.currentProperties[id] = properties;
         });
+        if (moveToFrame === 0) {
+            // do a full reset in this case
+            moveToFrame = -1;
+        }
         this.currentFrame = moveToFrame;
+        this.playUntil = 0;
+    }
+
+    playTo(playToFrame) {
+        this.playUntil = playToFrame;
+
+        if (this.playUntil > this.currentFrame) {
+            clearInterval(this.interval);
+            this.interval = null;
+            this.doTick();
+        }
     }
     
     getForId(id, frame) {
@@ -121,12 +143,14 @@ class Animator {
         if (!config) {
             return null;
         }
+
+        const playing = this.autoPlay || this.playUntil > this.currentFrame;
         
         const properties = this.currentProperties[id] || {
             style: {},
             animateStyles: [],
         };
-        
+
         const currentFrame = frame < 0 ? 0 : frame;
         const initialFrame = frame < 0;
         
@@ -138,10 +162,9 @@ class Animator {
                     const styleProp = property.replace('style.', '');
                     
                     // see if we need to animate to another value
-                    if (!initialFrame && this.autoPlay) {
+                    if (!initialFrame && playing) {
                         const frames = Object.keys(data);
                         const frameIndex = frames.indexOf(`${currentFrame}`);
-                        //console.log(frameIndex + 1, frames.length);
                         if (frameIndex + 1 < frames.length) {
                             const nextFrame = frames[frameIndex+1];
                             const nextValue = data[nextFrame];
@@ -156,7 +179,7 @@ class Animator {
                         }
                     }
 
-                    if (!this.autoPlay) {
+                    if (!playing) {
                         // reset all animations so that we don't accidentlly animate without meaning to
                         properties.animateStyles = [];
                     }
@@ -176,7 +199,7 @@ class Animator {
     animate(id, extraStyles) {
         const properties = this.getForId(id, this.currentFrame);
         if (!properties) {
-            return {};
+            return extraStyles;
         }
         // process properties
         const newProperties = {
@@ -191,14 +214,21 @@ class Animator {
         
         const animateList = Object.keys(properties.animateStyles).map((key) => {
             const duration = properties.animateStyles[key];
-            return `${key} ${duration}ms`;
+            // get correct css properties. Probably a better way to do this but I couldn't get it to work
+            let newKey = '';
+            for (const char of key) {
+                if (char.toLowerCase() !== char) {
+                    newKey += '-' + char;
+                } else {
+                    newKey += char;
+                }
+            }
+            return `${newKey} ${duration}ms`;
         });
         
         if (animateList.length > 0) {
             newProperties.style.transition = animateList.join(', ');
         }
-        
-        //console.log(newProperties);
         
         return newProperties;
     }

@@ -73,6 +73,15 @@ export default function App() {
             >
                 Reset
             </button>
+            <button
+                onClick={() => {
+                    setPlay(false);
+                    animator.moveTo(0);
+                    animator.playTo(10);
+                }}
+            >
+                Play Until 10
+            </button>
         </div>
 	</div>);
 }

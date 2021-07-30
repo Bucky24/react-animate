@@ -22,6 +22,12 @@ const getAnimator = (animatorObj, forceRender) => {
                 forceRender();
             }
         },
+        playTo: (frame) => {
+            if (animatorObj) {
+                animatorObj.playTo(frame);
+                forceRender();
+            }
+        },
     };
 }
 
