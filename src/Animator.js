@@ -93,8 +93,6 @@ class Animator {
             if (animateToValue !== null && animateToValue !== undefined) {
                 currentValue = animateToValue;
                 properties.animateStyles[styleProp] = (nextFrame - frame) * this.frameDelay;
-                //console.log('got here', currentValue, styleProp);
-            } else {
                 delete properties.animateStyles[styleProp];
             }
 
@@ -122,12 +120,15 @@ class Animator {
     }
 
     moveTo(moveToFrame) {
+        if (moveToFrame < 0) {
+            moveToFrame = 0;
+        }
         // basically find the closest keyframe to this frame that defines all our properites for all ids
         Object.keys(this.config).forEach((id) => {
             const config = this.config[id];
             let properties = {
                 style: {},
-                animateStyles: [],
+                animateStyles: {},
             };
             Object.keys(config).forEach((property) => {
                 const data = config[property];
@@ -159,6 +160,9 @@ class Animator {
     }
 
     playTo(playToFrame) {
+        if (playToFrame < 0) {
+            playToFrame = 0;
+        }
         this.playUntil = playToFrame;
 
         if (this.playUntil > this.currentFrame) {
@@ -179,7 +183,7 @@ class Animator {
         
         let properties = this.currentProperties[id] || {
             style: {},
-            animateStyles: [],
+            animateStyles: {},
         };
 
         const currentFrame = frame < 0 ? 0 : frame;
@@ -196,7 +200,7 @@ class Animator {
                     const frames = Object.keys(data);
                     const frameIndex = frames.indexOf(`${currentFrame}`);
                     if (frameIndex + 1 < frames.length) {
-                        nextFrame = frames[frameIndex+1];
+                        nextFrame = parseInt(frames[frameIndex+1], 10);
                         const nextValue = data[nextFrame];
                         // ignore and don't animate if the next value is null (meaning it's being unset)
                         if (nextValue !== null) {
@@ -215,7 +219,9 @@ class Animator {
     animate(id, extraStyles) {
         const properties = this.getForId(id, this.currentFrame);
         if (!properties) {
-            return extraStyles;
+            return {
+                style: extraStyles,
+            };
         }
         // process properties
         const newProperties = {
@@ -245,7 +251,7 @@ class Animator {
         if (animateList.length > 0) {
             newProperties.style.transition = animateList.join(', ');
         }
-        
+
         return newProperties;
     }
 }
