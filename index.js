@@ -33,29 +33,29 @@ const getAnimator = (animatorObj, forceRender) => {
 
 export const useAnimator = function({ config, autoPlay, frameDelay }) {
     const forceRender = useForceRender();
-    const animatorRef = useRef(null);
-    const [animatorObj, setAnimatorObj] = useState(getAnimator(null, forceRender));
-    const [tick, setTick] = useState(0);
-    
-    useEffect(() => {
-        if (!animatorRef.current) {
-            //console.log('setting current');
-            animatorRef.current = new Animator((tick) => {
-                //console.log('setting tick');
-                setTick(tick);
-            });
-        }
+    const animatorRef = useRef(new Animator((tick) => {
+        forceRender();
+    }));
+    const animatorObj = getAnimator(animatorRef.current, forceRender);
+
+    const doSetup = () => {
         animatorRef.current.setConfig(config);
         animatorRef.current.setAutoPlay(autoPlay);
         animatorRef.current.setFrameDelay(frameDelay);
-        
-        setAnimatorObj(getAnimator(animatorRef.current, forceRender));
+        forceRender();
+    }
+    
+    useEffect(() => {
+        doSetup();
     }, [config, autoPlay, frameDelay]);
     
     useEffect(() => {
+        doSetup();
+
         return () => {
             if (animatorRef.current) {
                 animatorRef.current.release();
+                animatorRef.current = null;
             }
         }
     }, []);

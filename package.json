@@ -1,6 +1,6 @@
 {
   "name": "@bucky24/react-animate",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "description": "Animation library for React apps",
   "main": "index.js",
   "scripts": {
