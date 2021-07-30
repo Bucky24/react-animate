@@ -10,6 +10,7 @@ const config = {
             'style.position': 'fixed',
             'style.height': 60,
             'style.fontSize': 16,
+            rotation: 0,
         },
     },
     10: {
@@ -17,6 +18,7 @@ const config = {
             'style.top': 'calc(100% - 60px)',
             'style.opacity': 1,
             'style.fontSize': 50,
+            rotation: 180,
         },
     },
     15: {

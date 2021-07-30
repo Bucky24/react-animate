@@ -70,7 +70,13 @@ The config is an object of the following format:
 
 Keyframes should always be numeric, and represent the tick at which the value should be reached.
 
-Animation keys currently only support css properties, prepended with `style.`. so in order to set the `color` property, you would set `style.color`. Note these should be React css properties, so use `marginTop`, not `margin-top`.
+### Style keys
+
+Style keys are any valid css style, prepended with `style.`. so in order to set the `color` property, you would set `style.color`. Note these should be React css properties, so use `marginTop`, not `margin-top`.
+
+### Rotation
+
+The `rotation` key will properly handle the rotation of the component, using `transform`. This is a shortcut key to allow the user to do rotations without building the full `transform` string.
 
 ## Tips For Use
 

@@ -84,11 +84,48 @@ class Animator {
         return this.interval;
     }
 
+    loadProperty(property, currentValue, animateToValue, frame, nextFrame, properties) {
+        const playing = this.autoPlay || this.playUntil > this.currentFrame;
+
+        if (property.startsWith('style.')) {
+            const styleProp = property.replace('style.', '');
+
+            if (animateToValue !== null && animateToValue !== undefined) {
+                currentValue = animateToValue;
+                properties.animateStyles[styleProp] = (nextFrame - frame) * this.frameDelay;
+                //console.log('got here', currentValue, styleProp);
+            } else {
+                delete properties.animateStyles[styleProp];
+            }
+
+            if (!playing) {
+                // reset all animations so that we don't accidentlly animate without meaning to
+                properties.animateStyles = [];
+            }
+            
+            properties.style = {
+                ...properties.style,
+                [styleProp]: currentValue,
+            };
+        } else if (property === 'rotation') {
+            if (animateToValue !== null && animateToValue !== undefined) {
+                currentValue = animateToValue;
+                properties.animateStyles.transform = (nextFrame - frame) * this.frameDelay;
+            }
+            properties.style = {
+                ...properties.style,
+                'transform': `rotate(${currentValue}deg)`,
+            };
+        }
+
+        return properties;
+    }
+
     moveTo(moveToFrame) {
         // basically find the closest keyframe to this frame that defines all our properites for all ids
         Object.keys(this.config).forEach((id) => {
             const config = this.config[id];
-            const properties = {
+            let properties = {
                 style: {},
                 animateStyles: [],
             };
@@ -106,13 +143,7 @@ class Animator {
                 }
                 //console.log(property, currentValue);
                 if (currentValue !== undefined) {
-                    if (property.startsWith('style.')) {
-                        const styleProp = property.replace('style.', '');
-                        properties.style = {
-                            ...properties.style,
-                            [styleProp]: currentValue,
-                        };
-                    }
+                    properties = this.loadProperty(property, currentValue, null, null, null, properties);
                 }
             });
 
@@ -146,7 +177,7 @@ class Animator {
 
         const playing = this.autoPlay || this.playUntil > this.currentFrame;
         
-        const properties = this.currentProperties[id] || {
+        let properties = this.currentProperties[id] || {
             style: {},
             animateStyles: [],
         };
@@ -158,37 +189,22 @@ class Animator {
             const data = config[property];
             let currentValue = data[currentFrame];
             if (currentValue !== undefined) {
-                if (property.startsWith('style.')) {
-                    const styleProp = property.replace('style.', '');
-                    
-                    // see if we need to animate to another value
-                    if (!initialFrame && playing) {
-                        const frames = Object.keys(data);
-                        const frameIndex = frames.indexOf(`${currentFrame}`);
-                        if (frameIndex + 1 < frames.length) {
-                            const nextFrame = frames[frameIndex+1];
-                            const nextValue = data[nextFrame];
-                            // ignore and don't animate if the next value is null (meaning it's being unset)
-                            if (nextValue !== null) {
-                                currentValue = nextValue;
-                                properties.animateStyles[styleProp] = (nextFrame - frame) * this.frameDelay;
-                                //console.log('got here', currentValue, styleProp);
-                            }
-                        } else {
-                            delete properties.animateStyles[styleProp];
+                let animateToValue = null;
+                let nextFrame = null;
+                // see if we need to animate to another value
+                if (!initialFrame && playing) {
+                    const frames = Object.keys(data);
+                    const frameIndex = frames.indexOf(`${currentFrame}`);
+                    if (frameIndex + 1 < frames.length) {
+                        nextFrame = frames[frameIndex+1];
+                        const nextValue = data[nextFrame];
+                        // ignore and don't animate if the next value is null (meaning it's being unset)
+                        if (nextValue !== null) {
+                            animateToValue = nextValue;
                         }
                     }
-
-                    if (!playing) {
-                        // reset all animations so that we don't accidentlly animate without meaning to
-                        properties.animateStyles = [];
-                    }
-                    
-                    properties.style = {
-                        ...properties.style,
-                        [styleProp]: currentValue,
-                    };
                 }
+                properties = this.loadProperty(property, currentValue, animateToValue, frame, nextFrame, properties);
             }
         });
         
