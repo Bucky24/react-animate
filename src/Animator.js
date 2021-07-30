@@ -173,13 +173,17 @@ class Animator {
         return properties;
     }
 
-    animate(id) {
+    animate(id, extraStyles) {
         const properties = this.getForId(id, this.currentFrame);
+        if (!properties) {
+            return {};
+        }
         // process properties
         const newProperties = {
             ...properties,
             style: {
                 ...properties.style,
+                ...extraStyles,
             },
         };
         

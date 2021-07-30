@@ -40,6 +40,11 @@ The Animator from `useAnimator` exposes the following methods:
 
 In order to actually consume the animator, spread the result of `animator.animate('id')` over the element. The id should match the ID in the config, and does not need to match the `id` property set on the element.
 
+| Param | Type | Description |
+|----|----|----|
+| id | string | The id of the element in the config to get animation data for |
+| styles | Object | Optional. Any styles given here will also be applied to the element (overriding anything in the animation) |
+
 ### moveTo
 
 The moveTo method takes in a frame, and will immediately jump in time to that frame, setting all applicable properties.

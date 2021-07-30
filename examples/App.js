@@ -44,7 +44,9 @@ export default function App() {
     
 	return (<div className={styles.appRoot}>
 		<div
-            {...animator.animate('header')}
+            {...animator.animate('header', {
+                color: 'blue',
+            })}
         >
             Welcome to Animate Test
         </div>
