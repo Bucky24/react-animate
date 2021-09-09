@@ -93,6 +93,7 @@ class Animator {
             if (animateToValue !== null && animateToValue !== undefined) {
                 currentValue = animateToValue;
                 properties.animateStyles[styleProp] = (nextFrame - frame) * this.frameDelay;
+            } else {
                 delete properties.animateStyles[styleProp];
             }
 
